@@ -1,0 +1,17 @@
+# build output
+*.exe
+*.pdb
+bin/
+obj/
+
+# personal data written next to the exe
+RetroSync.settings.json
+RetroSync.state.json
+RetroSync.activity.json
+*.log
+
+# editors / OS
+.vs/
+.vscode/
+Thumbs.db
+.DS_Store

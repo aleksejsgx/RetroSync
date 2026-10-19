@@ -1,0 +1,49 @@
+RetroSync - third-party notices
+================================
+
+1. playactor (https://github.com/dhleong/playactor)
+   Copyright (c) Daniel Leong
+   Licence: ISC (as declared in package.json)
+
+   Used in: src/RemoteWake.cs (RpKeys: PS5_INIT_KEY and PS5_AERO_KEY from
+   src/remoteplay/crypto/keys.ts) and as the model for the registration
+   algorithm, reimplemented in C#. tests/playactor_ref.js reads keys.ts at
+   test time and does not ship playactor code.
+
+   ISC License — Permission to use, copy, modify, and/or distribute this
+   software for any purpose with or without fee is hereby granted, provided
+   that the above copyright notice and this permission notice appear in all
+   copies. THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+2. Reference only — no code included
+   - PS5Upload (https://github.com/phantomptr/ps5upload), GPL-3.0: studied for
+     the remote power-on flow, rest-mode API name (sceSystemStateMgrEnterStandby),
+     console checklist and pairing idea. payload/*.c and src/PairHelper.cs /
+     RestMode.cs were written from scratch; registry numbers and Sony API names
+     are facts.
+   - ps5-wake (https://github.com/iharosi/ps5-wake), GPL-3.0: DDP packet format.
+   - chiaki-ng (https://github.com/streetpea/chiaki-ng), AGPL-3.0: protocol behaviour.
+
+3. PS5 Payload SDK (https://github.com/ps5-payload-dev/sdk)
+   Copyright (C) John Törnblom and contributors.
+   Licence: GPL-3.0-or-later for the SDK (include/freebsd is BSD-licensed).
+
+   Used only as a build toolchain for payload/pair.c and payload/rest.c.
+   Those .c files are MIT (same as RetroSync). The prebuilt ELFs
+   (src/retrosync-pair.elf, src/retrosync-rest.elf), linked with the SDK CRT
+   and runtime, are combined works under GPL-3.0-or-later. They are separate
+   programs from RetroSync.exe (embedded as data and sent to the console’s
+   ELF loader); the WinForms app remains MIT.
+
+   Corresponding Source for the ELFs: payload/*.c and Makefile in this
+   repository, plus the SDK sources at the URL above. You may rebuild the
+   ELFs yourself and replace the copies under src/ before building the exe.
+
+4. External tool used at run time (not distributed)
+   - mymc (PS2 memory card utility), configured by the user in Settings > PS2.
