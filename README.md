@@ -2,8 +2,6 @@
 
 Sync RetroArch saves and config between a Windows PC (Steam RetroArch) and a jailbroken PS5 running RetroArch homebrew. Also syncs PS2 memory cards, mirrors PS5 folders for backup, and can wake the console from rest mode (and put it back) over the network.
 
-**Licence:** MIT (application). The optional pairing / rest-mode helper ELFs link the [ps5-payload-dev SDK](https://github.com/ps5-payload-dev/sdk) CRT and are therefore **GPL-3.0-or-later as binaries**; their own C source under `payload/` is MIT. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
-
 ![Dashboard](docs/screenshots/1-dashboard.png)
 
 ## Features
@@ -94,4 +92,4 @@ RetroSync is not affiliated with Sony Interactive Entertainment or with RetroArc
 
 ## Licence
 
-[MIT](LICENSE) for RetroSync application source. Helper ELF binaries: GPL-3.0-or-later (see above).
+MIT (application). The optional pairing / rest-mode helper ELFs link the [ps5-payload-dev SDK](https://github.com/ps5-payload-dev/sdk) CRT and are therefore **GPL-3.0-or-later as binaries**; their own C source under `payload/` is MIT. See [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
