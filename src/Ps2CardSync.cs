@@ -31,9 +31,14 @@ namespace RetroSync
         public int SkewMin = 2;
         public string MymcPath = "";
 
-        public static readonly string AppDir = AppDomain.CurrentDomain.BaseDirectory;
-        public static string StatePath = Path.Combine(AppDir, "ps2-sync-state.ini");
-        public static string BackupDir = Path.Combine(AppDir, "backup");
+        public static string AppDir { get { return SettingsStore.DataDir; } }
+        public static string StatePath { get { return Path.Combine(AppDir, "ps2-sync-state.ini"); } }
+        static string _backupDir;
+        public static string BackupDir
+        {
+            get { return string.IsNullOrEmpty(_backupDir) ? Path.Combine(AppDir, "backup") : _backupDir; }
+            set { _backupDir = value; }
+        }
         AppSettings app;
 
         public string LocalPath { get { return Path.Combine(LocalDir, CardName); } }

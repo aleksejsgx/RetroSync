@@ -217,9 +217,74 @@ namespace RetroSync
 
     static class SettingsStore
     {
-        public static readonly string AppDir = AppDomain.CurrentDomain.BaseDirectory;
-        public static readonly string SettingsPath = Path.Combine(AppDir, "RetroSync.settings.json");
-        public static readonly string StatePath = Path.Combine(AppDir, "RetroSync.state.json");
+        // ExeDir = folder of RetroSync.exe. DataDir = writable settings/state location.
+        // Portable (default): DataDir == ExeDir. Installed: %APPDATA%\RetroSync when
+        // installed.flag exists next to the exe, or the exe folder is not writable.
+        // Existing portable installs keep settings next to the exe if RetroSync.settings.json is already there.
+        public static readonly string ExeDir;
+        public static readonly string DataDir;
+        public static readonly string AppDir;          // = DataDir (storage root; kept for callers)
+        public static readonly string SettingsPath;
+        public static readonly string StatePath;
+        public static readonly bool IsPortable;
+        public const string InstalledFlagName = "installed.flag";
+
+        // Test hooks (null in production)
+#pragma warning disable 649
+        public static string ExeDirOverride;
+        public static string AppDataOverride;
+        public static Func<string, bool> WritableCheckOverride;
+#pragma warning restore 649
+
+        static SettingsStore()
+        {
+            ExeDir = (ExeDirOverride ?? AppDomain.CurrentDomain.BaseDirectory).TrimEnd('\\', '/');
+            string appData = AppDataOverride;
+            if (string.IsNullOrEmpty(appData))
+            {
+                try { appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RetroSync"); }
+                catch { appData = Path.Combine(ExeDir, "data"); }
+            }
+            DataDir = ResolveDataDir(ExeDir, appData);
+            IsPortable = string.Equals(Path.GetFullPath(DataDir), Path.GetFullPath(ExeDir), StringComparison.OrdinalIgnoreCase);
+            AppDir = DataDir;
+            SettingsPath = Path.Combine(DataDir, "RetroSync.settings.json");
+            StatePath = Path.Combine(DataDir, "RetroSync.state.json");
+            try { Directory.CreateDirectory(DataDir); } catch { }
+        }
+
+        /// <summary>Pick portable (exeDir) vs installed (appData). Pure helper for tests.</summary>
+        public static string ResolveDataDir(string exeDir, string appData)
+        {
+            if (string.IsNullOrEmpty(exeDir)) exeDir = ".";
+            if (string.IsNullOrEmpty(appData)) appData = Path.Combine(exeDir, "data");
+            bool flag = File.Exists(Path.Combine(exeDir, InstalledFlagName));
+            bool settingsBeside = File.Exists(Path.Combine(exeDir, "RetroSync.settings.json"));
+            bool writable = DirIsWritable(exeDir);
+            // 1) Installer marker → app data
+            if (flag) return appData;
+            // 2) Existing portable settings beside exe → keep them (backwards compatible)
+            if (settingsBeside) return exeDir;
+            // 3) Writable exe folder → portable
+            if (writable) return exeDir;
+            // 4) Fallback → app data
+            return appData;
+        }
+
+        public static bool DirIsWritable(string dir)
+        {
+            if (WritableCheckOverride != null) return WritableCheckOverride(dir);
+            try
+            {
+                if (!Directory.Exists(dir)) return false;
+                string probe = Path.Combine(dir, ".retrosync-write-test");
+                File.WriteAllText(probe, "ok");
+                File.Delete(probe);
+                return true;
+            }
+            catch { return false; }
+        }
+
 
         static JavaScriptSerializer Ser() { return new JavaScriptSerializer { MaxJsonLength = int.MaxValue, RecursionLimit = 200 }; }
 
@@ -241,7 +306,7 @@ namespace RetroSync
             }
             catch (Exception e)
             {
-                error = "Settings unreadable (" + e.Message + "): uso i valori predefiniti.";
+                error = "Settings unreadable (" + e.Message + "): using defaults.";
                 return new AppSettings();
             }
         }

@@ -169,7 +169,7 @@ namespace RetroSync
                 catch (Exception ex) { DarkDialog.Info(FindForm(), "Could not open", ex.Message, Ico.Warning, Theme.Warn); }
             };
             var folder = Ui.Add(c, new DarkButton(Lang.T("Open program folder", "Apri cartella del programma"), BtnKind.Normal, Ico.Folder, true), 28 + open.Width, y + 28);
-            folder.Click += (s, e) => { try { Process.Start("explorer.exe", "\"" + SettingsStore.AppDir + "\""); } catch { } };
+            folder.Click += (s, e) => { try { Process.Start("explorer.exe", "\"" + SettingsStore.ExeDir + "\""); } catch { } };
             c.Height = y + 72;
         }
 

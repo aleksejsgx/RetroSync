@@ -36,7 +36,36 @@ namespace RetroSync
             var st = DdpStatus.Parse("HTTP/1.1 620 Server Standby\nhost-id:A1B2C3D4E5F6\nhost-type:PS5\nhost-name:PS5-TEST\nhost-request-port:997\ndevice-discovery-protocol-version:00030010\nsystem-version:09600004\n");
             Check("DDP parse standby", st != null && st.Standby && st.Firmware == "9.60" && st.HostName == "PS5-TEST", st == null ? "null" : st.Code + " " + st.Firmware);
 
+            
+            // ---- DataDir portable vs installed
+            string tmp = Path.Combine(Path.GetTempPath(), "retrosync-datadir-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tmp);
+            string appData = Path.Combine(tmp, "appdata");
+            Directory.CreateDirectory(appData);
+            try
+            {
+                Check("DataDir: writable exe, no flag → portable", SettingsStore.ResolveDataDir(tmp, appData) == tmp);
+                File.WriteAllText(Path.Combine(tmp, SettingsStore.InstalledFlagName), "1");
+                Check("DataDir: installed.flag → appdata", SettingsStore.ResolveDataDir(tmp, appData) == appData);
+                File.Delete(Path.Combine(tmp, SettingsStore.InstalledFlagName));
+                File.WriteAllText(Path.Combine(tmp, "RetroSync.settings.json"), "{}");
+                // Even if we pretend not writable, existing settings beside exe win
+                SettingsStore.WritableCheckOverride = _ => false;
+                Check("DataDir: existing settings beside exe keep portable", SettingsStore.ResolveDataDir(tmp, appData) == tmp);
+                SettingsStore.WritableCheckOverride = null;
+                File.Delete(Path.Combine(tmp, "RetroSync.settings.json"));
+                SettingsStore.WritableCheckOverride = _ => false;
+                Check("DataDir: not writable, no settings → appdata", SettingsStore.ResolveDataDir(tmp, appData) == appData);
+                SettingsStore.WritableCheckOverride = null;
+            }
+            finally
+            {
+                SettingsStore.WritableCheckOverride = null;
+                try { Directory.Delete(tmp, true); } catch { }
+            }
+
             FakeDdp();
+
             FakeRegistration();
             FakePairing();
             FakeRest();

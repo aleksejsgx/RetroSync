@@ -30,7 +30,7 @@ namespace RetroSync
 
     static class ActivityLog
     {
-        public static readonly string FilePath = Path.Combine(SettingsStore.AppDir, "RetroSync.activity.json");
+        public static readonly string FilePath = Path.Combine(SettingsStore.DataDir, "RetroSync.activity.json");
         static ActivityFile data;
         static readonly object gate = new object();
         public static event Action Changed;

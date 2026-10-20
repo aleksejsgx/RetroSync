@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// RetroSync 2.1 main window: sidebar navigation, page host, global header (status chips + dry-run),
+// RetroSync 2.1.1 main window: sidebar navigation, page host, global header (status chips + dry-run),
 // PS5 status polling and the remote power-on flow. The sync engines are used exactly as in v1.
 namespace RetroSync
 {
@@ -79,7 +79,7 @@ namespace RetroSync
             string err;
             Settings = SettingsStore.Load(out err); Lang.Apply(Settings);
             if (Demo.On) Demo.PrepareSettings(Settings);
-            Text = "RetroSync 2.1" + (Demo.On ? "  \u2014  DEMO (sample data)" : "");
+            Text = "RetroSync 2.1.1" + (Demo.On ? "  \u2014  DEMO (sample data)" : "");
             ClientSize = new Size(1280, 800);
             MinimumSize = new Size(1120, 720);
             StartPosition = Demo.On ? FormStartPosition.Manual : FormStartPosition.CenterScreen;
@@ -139,7 +139,7 @@ namespace RetroSync
             if (startPage == "wakebusy" && Demo.On) Shown += (s, e) => BeginInvoke(new Action(() => { Navigate("dashboard"); ShowWake(BannerKind.Busy, "Wake PS5", "signal sent to " + Settings.FtpHost + " \u00B7 waiting for the FTP server (14 s of " + Settings.Wake.WaitSeconds + " s)\u2026", 8); }));
             if (startPage == "wake") Shown += (s, e) => BeginInvoke(new Action(() => ((SettingsPage)pages["settings"]).ScrollToWake()));
             if (err != null) Log(err);
-            Log("RetroSync 2.1 \u2014 settings: " + SettingsStore.SettingsPath);
+            Log("RetroSync 2.1.1 \u2014 settings: " + SettingsStore.SettingsPath);
         }
 
         void AddPage(Page p) { pages[p.Key] = p; p.Visible = false; host.Controls.Add(p); p.Ready = true; p.PerformLayout(); }

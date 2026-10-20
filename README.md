@@ -13,6 +13,19 @@ Sync RetroArch saves and config between a Windows PC (Steam RetroArch) and a jai
 - **Rest mode** — *Rest mode* button sends a one-shot helper that calls the system standby API only (no reboot / shutdown). Confirmation dialog first.
 - **Language** — English by default (new installs). Italian available under *Settings → Advanced → Language / Lingua* (restart recommended after changing).
 
+
+## Download
+
+Latest release: [https://github.com/aleksejsgx/RetroSync/releases/latest](https://github.com/aleksejsgx/RetroSync/releases/latest)
+
+| Package | File | Notes |
+|---|---|---|
+| **Windows portable** | `RetroSync-*-win-x64-portable.zip` (or `.exe`) | Settings next to the exe. Drop the folder anywhere. |
+| **Windows installer** | `RetroSync-*-win-x64-setup.exe` | Per-user install (`%LOCALAPPDATA%\Programs\RetroSync`), Start menu, uninstaller. Settings in `%APPDATA%\RetroSync`. |
+| **Linux experimental** | `RetroSync-*-linux-x64-experimental.tar.gz` | Runs under Mono (`retrosync.sh`). Untested on real desktops — see `README-LINUX.md` in the archive. |
+
+Checksums are in `SHA256SUMS.txt` on the release page.
+
 ## Tested with
 
 - **RetroArch:** Steam RetroArch on Windows ↔ RetroArch homebrew port on PS5.
@@ -37,11 +50,11 @@ Other emulators or ports have not been tested and are not supported for now.
 
 ## Install
 
-1. Download `RetroSync.exe` (or build it) into its own folder.
-2. Start it, open **Settings**, set the PS5 IP, RetroArch folders and backup folder.
-3. Use **Sync all** with dry-run on to inspect the preview.
+**Portable:** unzip the portable package (or copy the `.exe`) into its own folder and run `RetroSync.exe`. Settings live next to the exe (`RetroSync.settings.json`). To update, replace only the exe.
 
-Settings live next to the exe (`RetroSync.settings.json`). To update, replace only the exe.
+**Installer:** run `RetroSync-*-win-x64-setup.exe` (per-user, no admin). Shortcuts go to the Start menu; settings are stored in `%APPDATA%\RetroSync`.
+
+Then open **Settings**, set the PS5 IP, RetroArch folders and backup folder, and use **Sync all** with dry-run on to inspect the preview.
 
 ### First-time remote power-on
 
