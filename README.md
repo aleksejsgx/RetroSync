@@ -13,6 +13,14 @@ Sync RetroArch saves and config between a Windows PC (Steam RetroArch) and a jai
 - **Rest mode** — *Rest mode* button sends a one-shot helper that calls the system standby API only (no reboot / shutdown). Confirmation dialog first.
 - **Language** — English by default (new installs). Italian available under *Settings → Advanced → Language / Lingua* (restart recommended after changing).
 
+## Tested with
+
+- **RetroArch:** Steam RetroArch on Windows ↔ RetroArch homebrew port on PS5.
+- **PS2:** PCSX2 on Windows ↔ [PS5SX2](https://github.com/Swordpdf/PS5SX2) on PS5.
+- **Coming next:** Dolphin on Windows ↔ [Porpoise](https://github.com/elripalda/Porpoise-Dolphin-Emulator-for-PS5) (Dolphin port for PS5) for GameCube/Wii saves.
+
+Other emulators or ports have not been tested and are not supported for now.
+
 ## Screenshots
 
 | Dashboard | RetroArch | PS2 | Backup | Remote power-on |
@@ -24,7 +32,7 @@ Sync RetroArch saves and config between a Windows PC (Steam RetroArch) and a jai
 - Windows 10/11 with .NET Framework 4.8 (included with Windows).
 - Jailbroken PS5 with an FTP payload (default port 2121) and RetroArch homebrew; PC and PS5 on the same LAN.
 - Steam RetroArch on the PC (other installs work if you set the folder).
-- For PS2 cards: PCSX2 cards and `mymc.exe`.
+- For PS2 cards: PCSX2 on the PC, [PS5SX2](https://github.com/Swordpdf/PS5SX2) on the PS5, and `mymc.exe`.
 - For pairing / rest mode: ELF loader listening on port **9021**, user signed in, Remote Play enabled. For wake from rest: *Stay Connected to the Internet* and *Enable Turning On PS5 from Network*.
 
 ## Install
@@ -88,7 +96,7 @@ Offline tests: `tests/run_tests.sh` (Mono, Node, a C compiler, Python 3; clone [
 - [PS5Upload](https://github.com/phantomptr/ps5upload) (GPL-3.0) — behaviour reference only (wake flow, rest mode API name, console checklist). No code copied.
 - [ps5-wake](https://github.com/iharosi/ps5-wake) / [chiaki-ng](https://github.com/streetpea/chiaki-ng) — protocol behaviour reference only.
 
-RetroSync is not affiliated with Sony Interactive Entertainment or with RetroArch / PCSX2 / Dolphin. “PlayStation” and “PS5” are trademarks of Sony Interactive Entertainment.
+RetroSync is not affiliated with Sony Interactive Entertainment or with RetroArch / PCSX2 / PS5SX2 / Dolphin / Porpoise. “PlayStation” and “PS5” are trademarks of Sony Interactive Entertainment.
 
 ## Licence
 
