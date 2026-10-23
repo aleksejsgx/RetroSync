@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 — 2026-10 (unreleased)
+## 2.2.0 — 2026-10
 
 ### New
 - **Dolphin ↔ Porpoise** (GameCube / Wii) save sync: GCI files per region (`GC/<EUR|USA|JAP>/Card A`) matched by GCI header game code + maker + internal file name; optional Wii `title/.../data` sync; history + newest-wins with time tolerance; backups under `<BackupRoot>\Dolphin`. New sidebar page, Settings card, Dolphin folder backup module and CLI preview (`--dry-run --dolphin`).

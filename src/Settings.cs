@@ -116,9 +116,7 @@ namespace RetroSync
         public string Ps5SaveLayout = "auto";
         public List<string> SaveExcludes = new List<string>
         {
-            "steam_autocloud.vdf", "desktop.ini", "Thumbs.db", "*.tmp", "*.retrosync.tmp",
-            // deliberately deleted on the PS5 on 18/10/2026
-            "Super Mario 64*.srm"
+            "steam_autocloud.vdf", "desktop.ini", "Thumbs.db", "*.tmp", "*.retrosync.tmp"
         };
         public Dictionary<string, string> GameCoreOverrides = new Dictionary<string, string>();
         public Dictionary<string, string> SubfolderCoreMap = new Dictionary<string, string> { { "fbneo", "FinalBurn Neo" }, { "opera", "Opera" } };
@@ -129,22 +127,14 @@ namespace RetroSync
         public List<string> ConfigExtensions = new List<string> { ".opt", ".cfg", ".slangp", ".rmp" };
         public List<string> ConfigExcludes = new List<string>
         {
-            "retroarch.cfg", "frontend.cfg", "framegen.cfg", "webui-metadata/**", "record/**", "steam_autocloud.vdf", "* - Copia.*",
-            // deliberately deleted on the PS5 on 18/10/2026 (DA_ELIMINARE.txt)
-            "Mupen64Plus-Next/Super Mario 64*", "remaps/Mupen64Plus-Next/Super Mario 64*",
-            "Mupen64Plus-Next/007 - GoldenEye*", "remaps/Mupen64Plus-Next/007 - GoldenEye*",
-            "Flycast/GigaWing 2.cfg", "Flycast/Sega - Dreamcast.cfg",
-            // PS1 per-game files and remaps (no PS1 games on the PS5)
-            "Beetle PSX HW/Castlevania*", "Beetle PSX HW/Crash*", "Beetle PSX HW/SCES-*", "Beetle PSX HW/Spyro*",
-            "Beetle PSX HW/Syphon Filter*", "Beetle PSX HW/WipEout*", "Beetle PSX HW/Metal Gear*",
-            "remaps/Beetle PSX HW/Castlevania*", "remaps/Beetle PSX HW/Syphon Filter*", "remaps/Beetle PSX HW/WipEout*",
+            "retroarch.cfg", "frontend.cfg", "framegen.cfg", "webui-metadata/**", "record/**", "steam_autocloud.vdf", "* - Copia.*", "* - Copy.*",
             // cores that exist only on the PC (no .so in the PS5 port)
             "Beetle PSX/**", "remaps/Beetle PSX/**", "PCSX-ReARMed/**", "remaps/PCSX-ReARMed/**",
             "SwanStation/**", "remaps/SwanStation/**", "melonDS/**", "remaps/melonDS/**",
             "O2EM/**", "remaps/O2EM/**", "YabaSanshiro/**", "remaps/YabaSanshiro/**"
         };
         public bool MergeKeyValueFiles = true;   // .cfg/.opt are merged key by key instead of copied whole
-        public List<string> ShaderDirs = new List<string> { "shaders/shaders_slang/CRT preferiti" };
+        public List<string> ShaderDirs = new List<string>();   // e.g. "shaders/shaders_slang/My CRT presets"
         public List<string> ShaderExcludes = new List<string> { "retroarch.slangp", "steam_autocloud.vdf" };
         public string PlaylistDir = "playlists";
         public List<string> PlaylistExcludes = new List<string> { "builtin/content_history.lpl", "builtin/content_image_history.lpl", "builtin/content_music_history.lpl", "builtin/content_video_history.lpl", "logs/**", "steam_autocloud.vdf" };

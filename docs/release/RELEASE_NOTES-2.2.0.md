@@ -1,6 +1,4 @@
-# RetroSync 2.2.0 (draft)
-
-> Draft: not published yet. Test build only.
+# RetroSync 2.2.0
 
 ## What's new in 2.2.0
 
