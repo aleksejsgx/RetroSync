@@ -8,6 +8,8 @@ Sync RetroArch saves and config between a Windows PC (Steam RetroArch) and a jai
 
 - **RetroArch sync** — saves, states, config, cores, shaders and playlists between Steam RetroArch on Windows and RetroArch on the PS5 (FTP). Preview before apply; dry-run mode; per-file actions (PC→PS5, PS5→PC, merge, skip).
 - **PS2 memory cards** — compare and move saves with `mymc`, with backups before writing.
+- **GameCube / Wii (new in 2.2)** — Dolphin on Windows ↔ Porpoise on PS5. GameCube saves are synced as per-game GCI files (Dolphin *GCI folder* mode, `User/GC/<EUR|USA|JAP>/Card A/`), matched by the game code inside the GCI header, so differently named files for the same save are still paired. Optional Wii save data (`User/Wii/title/<type>/<id>/data`). Same rules as the other systems: newest wins with time tolerance, history-based change detection, backup before every overwrite. Savestates are **not** synced (different Dolphin builds cannot load each other's states).
+- **Tray and autostart (new in 2.2)** — optional *Start with Windows* (starts hidden in the notification area) and *Minimize / close to the notification area*.
 - **PS5 backup mirror** — one-way PS5→PC folder mirror and dated per-emulator folder backups. Optional Task Scheduler command.
 - **Remote power-on** — wake from rest mode via Sony’s discovery protocol (UDP 9302). One-time **automatic pairing**: RetroSync sends a small helper ELF to the jailbreak ELF loader (port 9021); the helper reads the signed-in user’s account ID (read-only) and a Remote Play PIN, returns them over TCP 9303 with a one-time token, then exits. RetroSync registers on TCP 9295 and stores the wake credential. You can also paste an existing credential.
 - **Rest mode** — *Rest mode* button sends a one-shot helper that calls the system standby API only (no reboot / shutdown). Confirmation dialog first.
@@ -30,7 +32,7 @@ Checksums are in `SHA256SUMS.txt` on the release page.
 
 - **RetroArch:** Steam RetroArch on Windows ↔ RetroArch homebrew port on PS5.
 - **PS2:** PCSX2 on Windows ↔ [PS5SX2](https://github.com/Swordpdf/PS5SX2) on PS5.
-- **Coming next:** Dolphin on Windows ↔ [Porpoise](https://github.com/elripalda/Porpoise-Dolphin-Emulator-for-PS5) (Dolphin port for PS5) for GameCube/Wii saves.
+- **GameCube / Wii:** [Dolphin](https://dolphin-emu.org/) on Windows ↔ [Porpoise](https://github.com/elripalda/Porpoise-Dolphin-Emulator-for-PS5) (Dolphin port for PS5). Set the Dolphin `User` folder (portable: `<dolphin>\User`) and the Porpoise `User` folder on the PS5 (default `/data/porpoise/saves/User`) in *Settings → GameCube / Wii*. Dolphin must use **GCI folder** memory cards (not a `.raw` memory card image).
 
 Other emulators or ports have not been tested and are not supported for now.
 
@@ -65,10 +67,11 @@ Then open **Settings**, set the PS5 IP, RetroArch folders and backup folder, and
 ## Command line
 
 ```
-RetroSync.exe --dry-run [--saves | --config | --all] [--no-ps2] [--log <file>]
+RetroSync.exe --dry-run [--saves | --config | --all] [--no-ps2] [--dolphin | --no-dolphin] [--log <file>]
 RetroSync.exe --backup-ps5 [--move-deleted] [--log <file>]
 RetroSync.exe --baseline [--saves | --config | --all]
 RetroSync.exe --wake [--backup-ps5 | --dry-run ...]
+RetroSync.exe --minimized          (start hidden in the notification area; used by "Start with Windows")
 RetroSync.exe --demo [--page dashboard|retroarch|ps2|backup|settings|wake|log]
 ```
 

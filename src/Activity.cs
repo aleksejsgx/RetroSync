@@ -152,9 +152,22 @@ namespace RetroSync
         public string Id { get { return "dolphin"; } }
         public string Title { get { return "GameCube / Wii (Dolphin)"; } }
         public Ico Icon { get { return Ico.Dolphin; } }
-        public bool Available { get { return false; } }
-        public string Note { get { return "GC/, Wii/title/ \u2014 support planned"; } }
-        public List<BackupSource> Sources(AppSettings s) { return new List<BackupSource>(); }
+        public bool Available { get { return true; } }
+        public string Note { get { return "GC/ (GCI) and Wii/title/ \u2014 Dolphin (PC) and Porpoise (PS5)"; } }
+        public List<BackupSource> Sources(AppSettings s)
+        {
+            var d = s.Dolphin ?? new DolphinSettings();
+            var l = new List<BackupSource>();
+            string ps = "/" + (d.Ps5UserDir ?? "").Replace('\\', '/').Trim('/');
+            if (!string.IsNullOrEmpty(d.PcUserDir)) l.Add(new BackupSource { Label = "GC", LocalPath = Path.Combine(d.PcUserDir, "GC"), Excludes = new List<string> { "*.raw" } });
+            l.Add(new BackupSource { Label = "GC", RemotePath = ps + "/GC" });
+            if (d.SyncWii)
+            {
+                if (!string.IsNullOrEmpty(d.PcUserDir)) l.Add(new BackupSource { Label = "Wii-title", LocalPath = Path.Combine(d.PcUserDir, "Wii", "title"), Excludes = new List<string> { "*/*/content/**" } });
+                l.Add(new BackupSource { Label = "Wii-title", RemotePath = ps + "/Wii/title", Excludes = new List<string> { "*/*/content/**" } });
+            }
+            return l;
+        }
     }
 
     class FolderBackupResult

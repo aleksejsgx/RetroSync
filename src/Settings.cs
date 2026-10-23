@@ -70,6 +70,9 @@ namespace RetroSync
         public bool HideIdentical = true;
         public int EmulatorBackupKeep = 10; // versions kept per emulator folder backup
         public string Language = "en";      // "en" | "it" — English is the default for new installs
+        public bool StartWithWindows = false; // mirrored in HKCU\...\Run (New in 2.2)
+        public bool MinimizeToTray = false;   // minimise / close button hides the window to the notification area
+        public bool StartMinimized = true;    // when started with Windows, start hidden in the tray
     }
 
     public class AppSettings
@@ -168,6 +171,7 @@ namespace RetroSync
         };
 
         public Ps2Settings Ps2 = new Ps2Settings();
+        public DolphinSettings Dolphin = new DolphinSettings();
         public WakeSettings Wake = new WakeSettings();
         public UiSettings Ui = new UiSettings();
 
@@ -320,6 +324,11 @@ namespace RetroSync
         {
             var d = new AppSettings();
             if (s.Ps2 == null) s.Ps2 = d.Ps2;
+            if (s.Dolphin == null) s.Dolphin = new DolphinSettings();
+            if (s.Dolphin.Regions == null || s.Dolphin.Regions.Count == 0) s.Dolphin.Regions = d.Dolphin.Regions;
+            if (s.Dolphin.WiiTitleTypes == null) s.Dolphin.WiiTitleTypes = d.Dolphin.WiiTitleTypes;
+            if (s.Dolphin.Excludes == null) s.Dolphin.Excludes = d.Dolphin.Excludes;
+            if (string.IsNullOrEmpty(s.Dolphin.CardFolder)) s.Dolphin.CardFolder = d.Dolphin.CardFolder;
             if (s.Wake == null) s.Wake = new WakeSettings();
             if (s.Ui == null) s.Ui = new UiSettings();
             if (s.MainConfigFilter == null) s.MainConfigFilter = d.MainConfigFilter;

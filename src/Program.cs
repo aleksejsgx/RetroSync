@@ -4,11 +4,50 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using Microsoft.Win32;
+
+[assembly: System.Reflection.AssemblyTitle("RetroSync")]
+[assembly: System.Reflection.AssemblyProduct("RetroSync")]
+[assembly: System.Reflection.AssemblyVersion("2.2.0.0")]
+[assembly: System.Reflection.AssemblyFileVersion("2.2.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersion("2.2.0")]
 
 namespace RetroSync
 {
+    // "Start with Windows" (New in 2.2): HKCU Run entry pointing at this exe with --minimized.
+    static class Autostart
+    {
+        const string Key = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        const string Name = "RetroSync";
+
+        public static string Command { get { return "\"" + Application.ExecutablePath + "\" --minimized"; } }
+
+        public static bool IsEnabled()
+        {
+            try { using (var k = Registry.CurrentUser.OpenSubKey(Key)) { var v = k == null ? null : k.GetValue(Name) as string; return !string.IsNullOrEmpty(v); } }
+            catch { return false; }
+        }
+
+        public static string CurrentTarget()
+        {
+            try { using (var k = Registry.CurrentUser.OpenSubKey(Key)) return k == null ? null : k.GetValue(Name) as string; }
+            catch { return null; }
+        }
+
+        public static void Set(bool on)
+        {
+            using (var k = Registry.CurrentUser.CreateSubKey(Key))
+            {
+                if (on) k.SetValue(Name, Command);
+                else if (k.GetValue(Name) != null) k.DeleteValue(Name, false);
+            }
+        }
+    }
+
     static class Program
     {
+        public const string Version = "2.2.0";
+
         [DllImport("kernel32.dll")]
         static extern bool AttachConsole(int pid);
 
@@ -21,12 +60,12 @@ namespace RetroSync
                 AttachConsole(-1);
                 return Cli.Run(args);
             }
-            // Future: "--background" / auto-detect could start a tray watcher here that calls
-            // SyncEngine.BuildPlan() when RetroArch closes or the PS5 FTP becomes reachable.
+            // --minimized (used by "Start with Windows"): start hidden with only the tray icon.
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             // --demo: sample data for screenshots, nothing is read from or written to the PS5/RetroArch
             Demo.On = a.Contains("--demo");
+            MainWindow.StartHidden = (a.Contains("--minimized") || a.Contains("--tray")) && !Demo.On;
             int li = a.IndexOf("--lang");
             if (li >= 0 && li + 1 < a.Count) Lang.Forced = a[li + 1].Trim().ToLowerInvariant() == "it" ? "it" : "en";
             int pi = a.IndexOf("--page");
@@ -110,7 +149,7 @@ namespace RetroSync
             var a = args.Select(x => x.ToLowerInvariant()).ToList();
             if (a.Contains("--help") || a.Contains("/?"))
             {
-                Out("RetroSync.exe --dry-run [--saves | --config | --all] [--no-ps2] [--log <file>]");
+                Out("RetroSync.exe --dry-run [--saves | --config | --all] [--no-ps2] [--dolphin | --no-dolphin] [--log <file>]");
                 Out("  Show what would be synced, without writing anything.");
                 Out("RetroSync.exe --backup-ps5 [--move-deleted] [--log <file>]");
                 Out("  One-way incremental backup PS5 -> PC (MirrorRemoteRoot -> MirrorLocalRoot), excluding MirrorExcludes. Does not write to the PS5.");
@@ -118,6 +157,9 @@ namespace RetroSync
                 Out("  Record the current PC and PS5 state as aligned in RetroSync.state.json; does not touch RetroArch.");
                 Out("RetroSync.exe --wake [--backup-ps5 | --dry-run ...]");
                 Out("  Wakes the PS5 from rest mode (Remote Play) and waits for FTP, then runs the rest.");
+                Out("  --no-dolphin skips the Dolphin/Porpoise analysis (only run when Dolphin \u203A IncludeInSyncSave is on, or with --dolphin).");
+                Out("RetroSync.exe --minimized");
+                Out("  Start hidden in the notification area (used by \u201CStart with Windows\u201D).");
                 Out("RetroSync.exe --demo [--page dashboard|retroarch|ps2|backup|settings|log]");
                 Out("  Sample UI data for screenshots: nothing is read from or written anywhere.");
                 return 0;
@@ -190,6 +232,23 @@ namespace RetroSync
                             Out("    " + (it.Dir == 1 ? "PC \u2192 PS5" : it.Dir == 2 ? "PS5 \u2192 PC" : "\u2014") + "  " + it.Name + "  " + it.Title + "  (" + it.Status + ")");
                     }
                     catch (Exception e) { Out("  ERROR PS2: " + e.Message); rc = 1; }
+                }
+                bool dol = !baseline && (scope & SyncScope.Saves) != 0 && !a.Contains("--no-dolphin") && (a.Contains("--dolphin") || (s.Dolphin != null && s.Dolphin.IncludeInSyncSave));
+                if (dol)
+                {
+                    Out("");
+                    Out("=== Dolphin \u21C4 Porpoise (preview) ===");
+                    Out("PC : " + s.Dolphin.PcUserDir);
+                    Out("PS5: " + s.Dolphin.Ps5UserDir + (s.Dolphin.SyncWii ? "  (GC + Wii)" : "  (GC only)"));
+                    try
+                    {
+                        using (var de = new DolphinEngine(s, true, x => Out("  . " + x)))
+                        {
+                            var dp = de.BuildPlan(null);
+                            Out(DolphinEngine.Format(dp));
+                        }
+                    }
+                    catch (Exception e) { var x = e; while (x.InnerException != null) x = x.InnerException; Out("  ERROR Dolphin: " + x.Message); rc = 1; }
                 }
                 Out("");
                 Out((baseline ? "No RetroArch file modified (only RetroSync.state.json written)." : "No changes made (preview).") + " Log: " + logPath);

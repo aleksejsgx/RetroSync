@@ -37,8 +37,8 @@ namespace RetroSync
         public string Id { get { return "dolphin"; } }
         public string NavTitle { get { return "Dolphin"; } }
         public Ico Icon { get { return Ico.Dolphin; } }
-        public bool Available { get { return false; } }
-        public Page CreatePage(MainWindow w) { return null; }
+        public bool Available { get { return true; } }
+        public Page CreatePage(MainWindow w) { return new DolphinPage(w); }
     }
 
     static class Modules

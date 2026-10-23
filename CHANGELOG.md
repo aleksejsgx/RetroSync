@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 — 2026-10 (unreleased)
+
+### New
+- **Dolphin ↔ Porpoise** (GameCube / Wii) save sync: GCI files per region (`GC/<EUR|USA|JAP>/Card A`) matched by GCI header game code + maker + internal file name; optional Wii `title/.../data` sync; history + newest-wins with time tolerance; backups under `<BackupRoot>\Dolphin`. New sidebar page, Settings card, Dolphin folder backup module and CLI preview (`--dry-run --dolphin`).
+- **Start with Windows** (HKCU Run entry, starts hidden with `--minimized`) and **minimize / close to the notification area** with a tray menu (Open, Sync saves, Dolphin saves, Exit).
+
+### Fixed
+- RetroArch / Opera (3DO): games found inside a core sub tree (`opera/per_game/<game>.0.srm` on the PC, `Opera/opera/per_game/...` on the PS5) are now indexed to the Opera core, so their flat savestates and other per-game files resolve to the right PS5 core folder.
+
+### Changed
+- Version shown from a single constant (`Program.Version`); assembly version metadata added.
+
 ## 2.1.1 – 2026-10
 
 ### Changed

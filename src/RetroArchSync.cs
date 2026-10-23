@@ -197,6 +197,26 @@ namespace RetroSync
             bySub[sub] = core;
         }
 
+        // core-wide files inside a core sub tree (e.g. opera/shared/nvram.0.srm) are not games
+        public static bool IsSharedName(string g)
+        {
+            return string.IsNullOrEmpty(g) || g.Equals("nvram", StringComparison.OrdinalIgnoreCase) || g.Equals("shared", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // games found inside a mapped PC sub folder (flat PC layout, e.g. opera/per_game/<game>.0.srm)
+        public void AddSubGames(IEnumerable<string> flatRels)
+        {
+            foreach (var rel in flatRels)
+            {
+                int slash = rel.IndexOf('/');
+                if (slash <= 0) continue;
+                string core;
+                if (!bySub.TryGetValue(rel.Substring(0, slash), out core)) continue;
+                string g = GameBase(rel.Substring(rel.LastIndexOf('/') + 1));
+                if (!IsSharedName(g)) AddGame(g, core, "subfolder " + rel.Substring(0, slash) + " (" + core + ")");
+            }
+        }
+
         public static string CoreFromName(string coreName)
         {
             // "Nintendo - Nintendo 64 (Mupen64Plus-Next)" -> "Mupen64Plus-Next"
@@ -509,7 +529,14 @@ namespace RetroSync
                     var parts = rel.Split('/');
                     if (parts.Length < 2) continue;
                     if (parts.Length == 2) idx.AddGame(CoreIndex.GameBase(parts[1]), parts[0], "save already on the PS5 in " + parts[0]);
-                    else idx.AddSub(parts[1], parts[0]);
+                    else
+                    {
+                        idx.AddSub(parts[1], parts[0]);
+                        // cores that keep their own sub tree (e.g. Opera/3DO: Opera/opera/per_game/<game>.0.srm):
+                        // the game itself belongs to that core too, so its flat savestates map to the same folder
+                        string g = CoreIndex.GameBase(parts[parts.Length - 1]);
+                        if (!CoreIndex.IsSharedName(g)) idx.AddGame(g, parts[0], "save already on the PS5 in " + parts[0] + "/" + parts[1]);
+                    }
                 }
             }
             // runtime logs: playlists/logs/<core>/<game>.lrtl (both sides)
@@ -609,6 +636,7 @@ namespace RetroSync
                 var sv = resolved.FirstOrDefault(r => r.Item1 == "Saves");
                 var st = resolved.FirstOrDefault(r => r.Item1 == "Stati");
                 idx = BuildCoreIndex(sv == null ? null : sv.Item7, st == null ? null : st.Item7, plan);
+                foreach (var r in resolved) if (!r.Item4) idx.AddSubGames(r.Item6.Keys);   // PC flat trees with core sub folders (opera/...)
                 plan.Notes.Add("Indice giochi \u2192 core: " + idx.Count + " voci (da save PS5, log, config per-gioco, playlist).");
             }
             foreach (var r in resolved) BuildSaveCategory(plan, r.Item1, r.Item2, r.Item3, r.Item4, r.Item5, r.Item6, r.Item7, idx);

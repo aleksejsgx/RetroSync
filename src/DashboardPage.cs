@@ -201,7 +201,7 @@ namespace RetroSync
             CardPaint.Kv(g, 16, y, 92, cw, Lang.T("Wake"), wk ? Lang.T("configured") + (S.Wake.Nickname.Length > 0 ? " \u00B7 " + S.Wake.Nickname : "") : Lang.T("not configured"), false, wk ? (Color?)null : Theme.Muted);
         }
 
-        static bool IsSync(ActivityEntry a) { return (a.Kind == "Saves" || a.Kind == "RetroArch" || a.Kind == "All" || a.Kind == "PS2") && (a.Status == "ok" || a.Status == "error") && a.Title != "Preview" && a.Title != "Analysis"; }
+        static bool IsSync(ActivityEntry a) { return (a.Kind == "Saves" || a.Kind == "RetroArch" || a.Kind == "All" || a.Kind == "PS2" || a.Kind == "Dolphin") && (a.Status == "ok" || a.Status == "error") && a.Title != "Preview" && a.Title != "Analysis"; }
 
         void PaintLast(Graphics g)
         {
@@ -214,7 +214,7 @@ namespace RetroSync
             }
             CardPaint.Header(g, lastCard, Ico.Clock, Theme.Ok, Lang.T("Last sync"), ActivityLog.Ago(a.Time), a.Status == "ok" ? "OK" : Lang.T("Errors"), a.Status == "ok" ? Theme.BadgeKind.Ok : Theme.BadgeKind.Bad);
             int y = 60, cw = lastCard.Width - 32;
-            CardPaint.Kv(g, 16, y, 92, cw, Lang.T("Type"), a.Kind == "PS2" ? "PS2 memory card" : "RetroArch \u00B7 " + a.Kind); y += 19;
+            CardPaint.Kv(g, 16, y, 92, cw, Lang.T("Type"), a.Kind == "PS2" ? "PS2 memory card" : a.Kind == "Dolphin" ? "Dolphin \u21C4 Porpoise" : "RetroArch \u00B7 " + a.Kind); y += 19;
             CardPaint.Kv(g, 16, y, 92, cw, Lang.T("Transferred"), a.Files > 0 ? a.Files + (a.Files == 1 ? " file" : " files") + (a.Bytes > 0 ? " \u00B7 " + Util.Size(a.Bytes) : "") : a.Detail); y += 19;
             Theme.Text1(g, Lang.T("Direction"), Theme.F125, Theme.Muted, new Rectangle(16, y, 92, 20));
             int x = 108;
@@ -257,7 +257,7 @@ namespace RetroSync
                 rows.Add(new KeyValuePair<Theme.BadgeKind, string>(k, (it.Display ?? "").Split('/').Last() + " \u00B7 " + it.Reason));
             }
             if (!S.Wake.IsConfigured() && st.Power != Ps5Power.RestMode) rows.Add(new KeyValuePair<Theme.BadgeKind, string>(Theme.BadgeKind.Info, "Remote power-on not configured (Settings)"));
-            rows.Add(new KeyValuePair<Theme.BadgeKind, string>(Theme.BadgeKind.Neutral, "Dolphin support (GameCube/Wii) coming in a later release"));
+            if (S.Dolphin == null || string.IsNullOrEmpty(S.Dolphin.PcUserDir)) rows.Add(new KeyValuePair<Theme.BadgeKind, string>(Theme.BadgeKind.Info, "Dolphin \u21C4 Porpoise: set the Dolphin User folder in Settings"));
             int y = 46, max = Math.Max(1, (issues.Height - 52) / 28);
             foreach (var r in rows.Take(max))
             {

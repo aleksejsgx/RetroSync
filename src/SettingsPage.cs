@@ -21,6 +21,8 @@ namespace RetroSync
 
         DarkTextField host, port, user, pass, timeout, pcRoot, psRoot, psApp, ps2Local, ps2Card, ps2Remote, mymc, backup, keep, emuKeep, mirLocal, mirRemote;
         Toggle ps2InSave;
+        DarkTextField dolPc, dolPs5;
+        Toggle dolGc, dolWii, dolInSave, autoStart, toTray;
         DarkTextField cred, waitS, settleS, pollS;
         Segmented after;
         Toggle useDdp;
@@ -104,6 +106,16 @@ namespace RetroSync
             ps2InSave = Ui.Add(c, new Toggle("Includi la card PS2 in \u201CSync saves\u201D", true), 240, y + 2);
             c.Height = y + 42;
 
+            c = Card("GameCube / Wii \u00B7 Dolphin \u21C4 Porpoise", "tested with Dolphin (PC) and Porpoise (PS5)");
+            y = 50;
+            dolPc = Row(c, ref y, "Dolphin User folder on PC", @"e.g. D:\Dolphin\User (portable) or %APPDATA%\Dolphin Emulator"); Folder(dolPc);
+            dolPs5 = Row(c, ref y, "Porpoise User folder on PS5", "/data/porpoise/saves/User");
+            dolGc = Ui.Add(c, new Toggle("Sync GameCube saves (GCI folder: GC/<region>/Card A)", true), 240, y + 2); y += 34;
+            dolWii = Ui.Add(c, new Toggle("Sync Wii save data (Wii/title/.../data)", false), 240, y + 2); y += 34;
+            dolInSave = Ui.Add(c, new Toggle("Include Dolphin in the command-line preview (--dry-run)", false), 240, y + 2); y += 34;
+            Ui.Label(c, "Savestates are never synced: different Dolphin builds cannot load each other's states.", Theme.F12, Theme.Muted, 240, y, 620, 20).Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            c.Height = y + 34;
+
             c = Card("Backup");
             y = 50;
             backup = Row(c, ref y, "Backup folder"); Folder(backup);
@@ -161,6 +173,9 @@ namespace RetroSync
             langSeg.ItemClicked += i => langSeg.SelectedIndex = i;
             Ui.Add(c, langSeg, 240, y); y += 44;
 
+            autoStart = Ui.Add(c, new Toggle(Lang.T("Start with Windows (this exe, hidden in the tray)", "Avvia con Windows (questo exe, nascosto nell'area di notifica)"), false), 240, y + 2); y += 34;
+            toTray = Ui.Add(c, new Toggle(Lang.T("Minimize / close to the notification area (tray icon)", "Riduci / chiudi nell'area di notifica (icona)"), false), 240, y + 2); y += 40;
+
             Ui.Label(c, "retroarch.cfg key filters, exclusions, path mappings and mirror: editable in the settings file.", Theme.F125, Theme.Muted, 18, y, 640, 20).Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             var open = Ui.Add(c, new DarkButton(Lang.T("Open RetroSync.settings.json", "Apri RetroSync.settings.json"), BtnKind.Normal, Ico.Folder, true), 18, y + 28);
             open.Click += (s, e) =>
@@ -210,6 +225,10 @@ namespace RetroSync
             after.SelectedIndex = s.Wake.AfterWake == "saves" ? 0 : s.Wake.AfterWake == "config" ? 1 : s.Wake.AfterWake == "none" ? 3 : 2;
             waitS.Text = s.Wake.WaitSeconds.ToString(); settleS.Text = s.Wake.SettleSeconds.ToString();
             useDdp.SetSilently(s.Wake.UseDiscovery); pollS.Text = s.Ui.StatusPollSeconds.ToString();
+            var d = s.Dolphin ?? new DolphinSettings();
+            dolPc.Text = d.PcUserDir; dolPs5.Text = d.Ps5UserDir;
+            dolGc.SetSilently(d.SyncGc); dolWii.SetSilently(d.SyncWii); dolInSave.SetSilently(d.IncludeInSyncSave);
+            autoStart.SetSilently(Autostart.IsEnabled()); toTray.SetSilently(s.Ui.MinimizeToTray);
             wakeCard.Invalidate();
         }
 
@@ -240,6 +259,16 @@ namespace RetroSync
             s.Ui.EmulatorBackupKeep = ek;
             s.Wake.AfterWake = after.SelectedIndex == 0 ? "saves" : after.SelectedIndex == 1 ? "config" : after.SelectedIndex == 3 ? "none" : "all";
             s.Wake.WaitSeconds = ws; s.Wake.SettleSeconds = ss; s.Wake.UseDiscovery = useDdp.Checked; s.Ui.StatusPollSeconds = ps;
+            if (s.Dolphin == null) s.Dolphin = new DolphinSettings();
+            s.Dolphin.PcUserDir = dolPc.Text.Trim().TrimEnd('\\');
+            s.Dolphin.Ps5UserDir = "/" + dolPs5.Text.Trim().Replace('\\', '/').Trim('/');
+            s.Dolphin.SyncGc = dolGc.Checked; s.Dolphin.SyncWii = dolWii.Checked; s.Dolphin.IncludeInSyncSave = dolInSave.Checked;
+            s.Ui.MinimizeToTray = toTray.Checked; s.Ui.StartWithWindows = autoStart.Checked;
+            if (!Demo.On && autoStart.Checked != Autostart.IsEnabled())
+            {
+                try { Autostart.Set(autoStart.Checked); W.Log(autoStart.Checked ? "Start with Windows: on (" + Autostart.Command + ")" : "Start with Windows: off"); }
+                catch (Exception ex) { W.Log("ERROR autostart: " + ex.Message); }
+            }
             if (Demo.On) { W.Log("Demo: settings not written to disk."); W.SettingsSaved(); return true; }
             try { SettingsStore.Save(s); W.Log("Settings salvate."); }
             catch (Exception ex) { W.Log("ERROR saving settings: " + ex.Message); return Fail("Could not save: " + ex.Message); }

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// RetroSync 2.1.1 main window: sidebar navigation, page host, global header (status chips + dry-run),
+// RetroSync 2.2 main window: sidebar navigation, page host, global header (status chips + dry-run),
 // PS5 status polling and the remote power-on flow. The sync engines are used exactly as in v1.
 namespace RetroSync
 {
@@ -74,12 +74,17 @@ namespace RetroSync
         public Ps2Page Ps2 { get { return (Ps2Page)pages["ps2"]; } }
         public BackupPage Backup { get { return (BackupPage)pages["backup"]; } }
 
+        // ---- notification area (New in 2.2)
+        NotifyIcon tray;
+        bool exiting, trayHintShown;
+        public static bool StartHidden;   // set by --minimized (autostart)
+
         public MainWindow(string startPage)
         {
             string err;
             Settings = SettingsStore.Load(out err); Lang.Apply(Settings);
             if (Demo.On) Demo.PrepareSettings(Settings);
-            Text = "RetroSync 2.1.1" + (Demo.On ? "  \u2014  DEMO (sample data)" : "");
+            Text = "RetroSync " + Program.Version + (Demo.On ? "  \u2014  DEMO (sample data)" : "");
             ClientSize = new Size(1280, 800);
             MinimumSize = new Size(1120, 720);
             StartPosition = Demo.On ? FormStartPosition.Manual : FormStartPosition.CenterScreen;
@@ -128,9 +133,15 @@ namespace RetroSync
                     if (Settings.Ui.StatusPollSeconds > 0) pollTimer.Start();
                 }
             };
+            SetupTray();
+            Resize += (s, e) => { if (WindowState == FormWindowState.Minimized && Settings.Ui.MinimizeToTray) HideToTray(); };
             FormClosing += (s, e) =>
             {
-                if (Busy && e.CloseReason == CloseReason.UserClosing &&
+                if (!exiting && e.CloseReason == CloseReason.UserClosing && Settings.Ui.MinimizeToTray && !Demo.On)
+                {
+                    e.Cancel = true; HideToTray(); return;
+                }
+                if (Busy && !exiting && e.CloseReason == CloseReason.UserClosing &&
                     DarkDialog.Ask(this, "Operation in progress", "An operation is in progress. Closing now may leave it half-done.\n\nClose anyway?", "Close", "Continue", Ico.Warning, Theme.Warn) != DialogResult.OK)
                     e.Cancel = true;
             };
@@ -139,7 +150,60 @@ namespace RetroSync
             if (startPage == "wakebusy" && Demo.On) Shown += (s, e) => BeginInvoke(new Action(() => { Navigate("dashboard"); ShowWake(BannerKind.Busy, "Wake PS5", "signal sent to " + Settings.FtpHost + " \u00B7 waiting for the FTP server (14 s of " + Settings.Wake.WaitSeconds + " s)\u2026", 8); }));
             if (startPage == "wake") Shown += (s, e) => BeginInvoke(new Action(() => ((SettingsPage)pages["settings"]).ScrollToWake()));
             if (err != null) Log(err);
-            Log("RetroSync 2.1.1 \u2014 settings: " + SettingsStore.SettingsPath);
+            Log("RetroSync " + Program.Version + " \u2014 settings: " + SettingsStore.SettingsPath);
+        }
+
+        void SetupTray()
+        {
+            if (Demo.On) return;
+            var menu = new ContextMenuStrip { Renderer = new DarkMenuRenderer(), ShowImageMargin = false };
+            menu.Items.Add(Lang.T("Open RetroSync", "Apri RetroSync"), null, (s, e) => ShowFromTray());
+            menu.Items.Add(Lang.T("Sync saves\u2026", "Sincronizza salvataggi\u2026"), null, (s, e) => { ShowFromTray(); StartRetroArch(SyncScope.Saves); });
+            menu.Items.Add(Lang.T("Dolphin saves\u2026", "Salvataggi Dolphin\u2026"), null, (s, e) => { ShowFromTray(); Navigate("dolphin"); var d = CurrentPage as DolphinPage; if (d != null) d.Analyze(); });
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(Lang.T("Exit", "Esci"), null, (s, e) => ExitApp());
+            foreach (ToolStripItem i in menu.Items) i.ForeColor = Theme.Text;
+            tray = new NotifyIcon { Text = "RetroSync " + Program.Version, ContextMenuStrip = menu, Visible = Settings.Ui.MinimizeToTray || StartHidden };
+            try { tray.Icon = Icon ?? SystemIcons.Application; } catch { tray.Icon = SystemIcons.Application; }
+            tray.DoubleClick += (s, e) => ShowFromTray();
+            tray.MouseClick += (s, e) => { if (e.Button == MouseButtons.Left) ShowFromTray(); };
+            FormClosed += (s, e) => { if (tray != null) { tray.Visible = false; tray.Dispose(); tray = null; } };
+            if (StartHidden)
+            {
+                // started by Windows: no window, only the tray icon
+                WindowState = FormWindowState.Minimized; ShowInTaskbar = false;
+                Shown += (s, e) => BeginInvoke(new Action(() => { Hide(); }));
+            }
+        }
+
+        public void ApplyTraySetting() { if (tray != null) tray.Visible = Settings.Ui.MinimizeToTray || !Visible; }
+
+        void HideToTray()
+        {
+            if (tray == null) return;
+            tray.Visible = true;
+            Hide(); ShowInTaskbar = false;
+            if (!trayHintShown)
+            {
+                trayHintShown = true;
+                try { tray.ShowBalloonTip(3000, "RetroSync", Lang.T("RetroSync is still running in the notification area.", "RetroSync resta attivo nell'area di notifica."), ToolTipIcon.Info); } catch { }
+            }
+        }
+
+        public void ShowFromTray()
+        {
+            ShowInTaskbar = true;
+            Show();
+            if (WindowState == FormWindowState.Minimized) WindowState = FormWindowState.Normal;
+            Activate();
+            if (tray != null) tray.Visible = Settings.Ui.MinimizeToTray;
+        }
+
+        void ExitApp()
+        {
+            if (Busy && DarkDialog.Ask(this, "Operation in progress", "An operation is in progress. Exit anyway?", "Exit", "Continue", Ico.Warning, Theme.Warn) != DialogResult.OK) return;
+            exiting = true;
+            Close();
         }
 
         void AddPage(Page p) { pages[p.Key] = p; p.Visible = false; host.Controls.Add(p); p.Ready = true; p.PerformLayout(); }
@@ -358,6 +422,7 @@ namespace RetroSync
             pollTimer.Interval = Math.Max(10, Settings.Ui.StatusPollSeconds) * 1000;
             if (Settings.Ui.StatusPollSeconds > 0 && !Demo.On) pollTimer.Start(); else pollTimer.Stop();
             UpdateChips(); Invalidate(); HeaderChanged();
+            ApplyTraySetting();
             RefreshStatus(true);
         }
 
